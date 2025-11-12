@@ -1,20 +1,16 @@
 import { transporter } from "../config/nodemailer";
 import { resend } from "../config/resend";
-import { VerificationEmail } from "../emails/VerificationEmail";
+import { ResetPasswordEmail } from "../emails/ResetPasswordEmail";
 
-export async function sendVerificationEmail(
-  email: string,
-  username: string,
-  verificationCode: string,
-) {
+export async function sendPasswordResetMail(resetLink: string, email: string) {
   try {
     if (process.env.NODE_ENV === "development") {
       // --- Use Nodemailer in development ---
       const mailOptions = {
         from: `"Mira" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: "Verify Your Email - Mira",
-        html: VerificationEmail(verificationCode),
+        subject: "Reset Your Password - Mira",
+        html: ResetPasswordEmail(resetLink),
       };
 
       const info = await transporter.sendMail(mailOptions);
@@ -24,14 +20,14 @@ export async function sendVerificationEmail(
       await resend.emails.send({
         from: "Mira <onboarding@resend.dev>",
         to: email,
-        subject: "Your Mira verification code",
-        html: VerificationEmail(verificationCode),
+        subject: "Reset Password",
+        html: ResetPasswordEmail(resetLink),
       });
 
       console.log("✅ Prod email sent via Resend!");
     }
   } catch (error) {
-    console.error("❌ Failed to send verification email:", error);
+    console.error("❌ Failed to send password reset email:", error);
     throw error;
   }
 }

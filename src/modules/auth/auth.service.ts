@@ -11,3 +11,10 @@ export const createUser = async (payload: Object) => {
 export const findUserById = async (userId: String) => {
   return await User.findById(userId);
 };
+
+export const findUserByResetToken = async (resetPasswordToken: string) => {
+  return await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpiresAt: { $gt: Date.now() },
+  });
+};

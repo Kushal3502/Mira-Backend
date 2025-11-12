@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { Request, Response } from "express";
 import {
   generateAccessToken,
@@ -6,9 +7,15 @@ import {
   generateVerificationCode,
   verifyToken,
 } from "../../helpers/generateTokens";
+import { sendPasswordResetMail } from "../../helpers/sendPasswordResetMail";
 import { sendVerificationEmail } from "../../helpers/sendVerificationMail";
 import { ApiError, ApiResponse, asyncHandler } from "../../utils";
-import { createUser, findUserByEmail, findUserById } from "./auth.service";
+import {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  findUserByResetToken,
+} from "./auth.service";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -45,10 +52,10 @@ export const registerUser = asyncHandler(
           _id: newUser._id,
           fullName: newUser.fullName,
           email: newUser.email,
-        }
-      )
+        },
+      ),
     );
-  }
+  },
 );
 
 export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
@@ -67,7 +74,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   )
     throw new ApiError(
       410,
-      "Verification code has expired. Please request a new one."
+      "Verification code has expired. Please request a new one.",
     );
 
   const isValid = user.verificationToken === token;
@@ -123,7 +130,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       new ApiResponse(200, "Login successful", {
         _id: user._id,
         email,
-      })
+        fullName: user.fullName,
+      }),
     );
 });
 
@@ -168,7 +176,8 @@ export const me = asyncHandler(async (req: Request, res: Response) => {
     new ApiResponse(200, "User fetched successfully.", {
       _id: user._id,
       email,
-    })
+      fullName: user.fullName,
+    }),
   );
 });
 
@@ -181,7 +190,7 @@ export const setNewAccessToken = asyncHandler(
 
     const decodedToken = verifyToken(
       refreshToken,
-      String(process.env.REFRESH_TOKEN_SECRET)
+      String(process.env.REFRESH_TOKEN_SECRET),
     ) as { _id: string };
 
     if (!decodedToken || !decodedToken._id) {
@@ -211,5 +220,70 @@ export const setNewAccessToken = asyncHandler(
         maxAge: 15 * 60 * 1000,
       })
       .json(new ApiResponse(200, "Access token refreshed successfully"));
-  }
+  },
+);
+
+export const getResetPasswordLink = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if (!email) throw new ApiError(400, "Email is required.");
+
+    const user = await findUserByEmail(email);
+
+    if (!user) throw new ApiError(404, "User not found");
+
+    const resetPasswordToken = crypto.randomBytes(32).toString("hex");
+    const resetPasswordExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    user.resetPasswordToken = resetPasswordToken;
+    user.resetPasswordExpiresAt = resetPasswordExpiresAt;
+
+    await user.save();
+
+    await sendPasswordResetMail(
+      `${process.env.CLIENT_URL}/reset-password/${resetPasswordToken}`,
+      email,
+    );
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Password reset link sent to your email."));
+  },
+);
+
+export const resetPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { resetPasswordToken, email } = req.params;
+    const { password } = req.body;
+
+    if (!resetPasswordToken)
+      throw new ApiError(400, "Reset token is required.");
+    if (!password) throw new ApiError(400, "New password is required.");
+
+    const user = await findUserByResetToken(resetPasswordToken);
+
+    if (!user)
+      throw new ApiError(
+        400,
+        "Invalid or expired password reset token. Please request a new one.",
+      );
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiresAt = undefined;
+
+    await user.save();
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          "Password reset successfully. You can now log in.",
+        ),
+      );
+  },
 );
