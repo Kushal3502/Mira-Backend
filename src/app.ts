@@ -19,5 +19,7 @@ app.get("/", (req, res) => {
 
 // routes ------------------>
 import authRouter from "./modules/auth/auth.routes";
+import chatbotRouter from "./modules/chatbot/chatbot.route";
 
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/chatbot", chatbotRouter);
