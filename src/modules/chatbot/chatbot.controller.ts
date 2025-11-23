@@ -1,46 +1,67 @@
 import { Request, Response } from "express";
 import { ApiError, ApiResponse, asyncHandler } from "../../utils";
-import { createChatbot, findChatbotByName } from "./chatbot.service";
+import { ChatbotService } from "./chatbot.service";
 
-export const addChatbot = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?._id;
+export const ChatbotController = {
+  addChatbot: asyncHandler(async (req: Request, res: Response) => {
+    const owner = req.user?._id;
+    if (!owner) throw new ApiError(401, "Unauthorized");
 
-  const { name, description, logo } = req.body;
+    const chatbot = await ChatbotService.addChatbot(owner, req.body);
 
-  if (!name) throw new ApiError(400, "Please provide a name");
+    res
+      .status(201)
+      .json(new ApiResponse(201, "Chatbot created successfully.", chatbot));
+  }),
 
-  const existingBot = await findChatbotByName(name, userId);
+  fetchChatbots: asyncHandler(async (req: Request, res: Response) => {
+    const owner = req.user?._id;
+    if (!owner) throw new ApiError(401, "Unauthorized");
 
-  if (existingBot)
-    throw new ApiError(
-      400,
-      "Chatbot already exists with this name. Please choose a unique one.",
+    const chatbots = await ChatbotService.fetchChatbots(owner);
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Chatbots fetched successfully.", chatbots));
+  }),
+
+  getChatbot: asyncHandler(async (req: Request, res: Response) => {
+    const owner = req.user?._id;
+    if (!owner) throw new ApiError(401, "Unauthorized");
+
+    const chatbot = await ChatbotService.getChatbot(
+      owner,
+      req.params.chatbotId
     );
 
-  const newChatbot = await createChatbot({
-    user: userId,
-    name,
-    description,
-    logo,
-  });
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Chatbot fetched successfully.", chatbot));
+  }),
 
-  res
-    .status(201)
-    .json(new ApiResponse(201, "Chatbot created successfully", newChatbot));
-});
+  deleteChatbot: asyncHandler(async (req: Request, res: Response) => {
+    const owner = req.user?._id;
+    if (!owner) throw new ApiError(401, "Unauthorized");
 
-export const fetchAllChatBots = asyncHandler(
-  async (req: Request, res: Response) => {},
-);
+    await ChatbotService.deleteChatbot(owner, req.params.chatbotId);
 
-export const fetchChatbotById = asyncHandler(
-  async (req: Request, res: Response) => {},
-);
+    res.status(200).json(new ApiResponse(200, "Chatbot deleted successfully."));
+  }),
 
-export const updateChatbot = asyncHandler(
-  async (req: Request, res: Response) => {},
-);
+  updateChatbot: asyncHandler(async (req: Request, res: Response) => {
+    const owner = req.user?._id;
+    const { chatbotId } = req.params;
 
-export const deleteChatbot = asyncHandler(
-  async (req: Request, res: Response) => {},
-);
+    if (!owner) throw new ApiError(401, "Unauthorized");
+
+    const updated = await ChatbotService.updateChatbot(
+      owner,
+      chatbotId,
+      req.body
+    );
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Chatbot updated successfully.", updated));
+  }),
+};

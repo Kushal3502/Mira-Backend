@@ -1,17 +1,26 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import { rateLimit } from "express-rate-limit";
+import morgan from "morgan";
 
 export const app = express();
+
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 10,
+});
 
 app.use(
   cors({
     origin: ["https://localhost:3000"],
     credentials: true,
-  }),
+  })
 );
 app.use(express.json());
 app.use(cookieParser());
+app.use(limiter);
+app.use(morgan("dev"));
 
 app.get("/", (req, res) => {
   res.send("🚀API is running...");

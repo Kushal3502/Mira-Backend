@@ -1,22 +1,19 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/authMiddleware";
-import {
-  addChatbot,
-  deleteChatbot,
-  fetchAllChatBots,
-  fetchChatbotById,
-  updateChatbot,
-} from "./chatbot.controller";
+import { ChatbotController } from "./chatbot.controller";
 
 const router = Router();
+
+const { addChatbot, fetchChatbots, getChatbot, deleteChatbot, updateChatbot } =
+  ChatbotController;
 
 router.use(authMiddleware);
 
 router.route("/add").post(addChatbot);
-router.route("/fetch-all").get(fetchAllChatBots);
+router.route("/fetch-all").get(fetchChatbots);
 router
   .route("/:chatbotId")
-  .get(fetchChatbotById)
+  .get(getChatbot)
   .patch(updateChatbot)
   .delete(deleteChatbot);
 
