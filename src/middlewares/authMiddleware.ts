@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { verifyToken } from "../helpers/generateTokens";
 import { ApiError, ApiResponse, asyncHandler } from "../utils";
+import { TokenHelper } from "../helpers/token.helpers";
 
 export const authMiddleware = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -13,7 +13,7 @@ export const authMiddleware = asyncHandler(
           .status(401)
           .json(new ApiResponse(401, "Unauthorized access."));
 
-      const decodedToken = verifyToken(
+      const decodedToken = TokenHelper.verifyToken(
         token,
         String(process.env.ACCESS_TOKEN_SECRET),
       ) as { _id: string; email: string };

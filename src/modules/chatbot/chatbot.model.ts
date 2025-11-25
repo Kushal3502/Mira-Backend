@@ -17,17 +17,6 @@ const chatbotSchema = new mongoose.Schema(
       type: String,
       default: "You are a helpful assistant.",
     },
-    documents: [
-      {
-        fileName: String,
-        url: String,
-        size: Number,
-        uploadedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
   },
   {
     timestamps: true,
