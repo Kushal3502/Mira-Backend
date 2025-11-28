@@ -9,7 +9,7 @@ const documentSchema = new mongoose.Schema(
     },
     fileName: String,
     url: String,
-    fileSize: String,
+    fileSize: Number,
   },
   {
     timestamps: true,

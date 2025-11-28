@@ -3,6 +3,8 @@ import { ChatbotRepository } from "./chatbot.repository";
 
 export const ChatbotService = {
   async addChatbot(owner: string, data: any) {
+    if (!owner) throw new ApiError(401, "Unauthorized");
+
     const { name, description, logo } = data;
 
     if (!name) {
@@ -13,7 +15,7 @@ export const ChatbotService = {
     if (exists) {
       throw new ApiError(
         400,
-        "Chatbot already exists with this name. Please choose a unique one."
+        "Chatbot already exists with this name. Please choose a unique one.",
       );
     }
 
@@ -26,10 +28,14 @@ export const ChatbotService = {
   },
 
   fetchChatbots(owner: string) {
+    if (!owner) throw new ApiError(401, "Unauthorized");
+
     return ChatbotRepository.findByOwner(owner);
   },
 
   async getChatbot(owner: string, id: string) {
+    if (!owner) throw new ApiError(401, "Unauthorized");
+
     const chatbot = await ChatbotRepository.findById(owner, id);
 
     if (!chatbot) {
@@ -40,6 +46,8 @@ export const ChatbotService = {
   },
 
   async deleteChatbot(owner: string, id: string) {
+    if (!owner) throw new ApiError(401, "Unauthorized");
+
     const chatbot = await ChatbotRepository.findById(owner, id);
 
     if (!chatbot) {
@@ -50,6 +58,8 @@ export const ChatbotService = {
   },
 
   async updateChatbot(owner: string, chatbotId: string, data: any) {
+    if (!owner) throw new ApiError(401, "Unauthorized");
+
     const { name, logo, description } = data;
 
     if (!name && !logo && !description) {

@@ -4,6 +4,7 @@ declare global {
       user?: {
         [key: string]: any;
       };
+      files?: Express.Multer.File[];
     }
   }
 }
