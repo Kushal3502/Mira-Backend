@@ -25,7 +25,18 @@ export const RagController = {
       .json(new ApiResponse(201, "Document uploaded successfully", document));
   }),
 
-  getAllDocuments: asyncHandler(async (req: Request, res: Response) => {}),
+  getAllDocuments: asyncHandler(async (req: Request, res: Response) => {
+    const owner = req.user?._id;
+
+    const documents = await RagService.getDocuments(
+      owner,
+      req.params.chatbotId,
+    );
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Documents fetched successfully", documents));
+  }),
 
   updateDocument: asyncHandler(async (req: Request, res: Response) => {}),
 

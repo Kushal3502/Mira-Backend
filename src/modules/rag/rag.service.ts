@@ -27,4 +27,16 @@ export const RagService = {
       fileSize: pdf?.bytes,
     });
   },
+
+  async getDocuments(owner: string, chatbotId: string) {
+    if (!owner) throw new ApiError(401, "Unauthorized");
+
+    const chatbot = await ChatbotRepository.findById(owner, chatbotId);
+    
+    if (!chatbot) {
+      throw new ApiError(404, "Chatbot not found.");
+    }
+  
+    return await RagRepository.findByChatbot(chatbotId);
+  },
 };
