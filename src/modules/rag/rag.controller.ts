@@ -1,41 +1,40 @@
 import { Request, Response } from "express";
-import { ApiResponse, asyncHandler } from "../../utils";
+import { ApiError, ApiResponse, asyncHandler } from "../../utils";
 import { RagService } from "./rag.service";
 
 export const RagController = {
   uploadDocument: asyncHandler(async (req: Request, res: Response) => {
-    const files = req.files as Express.Multer.File[];
     const owner = req.user?._id;
     const { chatbotId } = req.params;
+    const { filePath } = req.body;
 
-    if (!files || files.length === 0) {
-      throw new Error("No files uploaded");
+    if (!filePath) {
+      throw new ApiError(400, "filePath is required");
     }
+    ``;
 
-    console.log("Uploaded:", files[0].path);
+    await RagService.generateEmbeddings(filePath);
 
     const document = await RagService.uploadDocument(
       owner,
       chatbotId,
-      files[0].path,
-    );
-
-    return res
-      .status(201)
-      .json(new ApiResponse(201, "Document uploaded successfully", document));
-  }),
-
-  getAllDocuments: asyncHandler(async (req: Request, res: Response) => {
-    const owner = req.user?._id;
-
-    const documents = await RagService.getDocuments(
-      owner,
-      req.params.chatbotId,
+      filePath,
     );
 
     return res
       .status(200)
-      .json(new ApiResponse(200, "Documents fetched successfully", documents));
+      .json(new ApiResponse(200, "Embeddings created.", document));
+  }),
+
+  getDocumentUrl: asyncHandler(async (req: Request, res: Response) => {
+    const owner = req.user?._id;
+    const { chatbotId, documentId } = req.params;
+
+    const url = await RagService.getDocumentUrl(owner, chatbotId, documentId);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Signed URL generated", { url }));
   }),
 
   updateDocument: asyncHandler(async (req: Request, res: Response) => {}),

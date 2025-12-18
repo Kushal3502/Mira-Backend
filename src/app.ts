@@ -7,8 +7,8 @@ import morgan from "morgan";
 export const app = express();
 
 const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 10,
+  windowMs: 10 * 1000,
+  limit: 3,
 });
 
 app.use(

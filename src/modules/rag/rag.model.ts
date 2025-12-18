@@ -7,9 +7,10 @@ const documentSchema = new mongoose.Schema(
       ref: "Chatbot",
       required: true,
     },
-    fileName: String,
-    url: String,
-    fileSize: Number,
+    filePath: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
