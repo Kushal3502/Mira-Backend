@@ -11,6 +11,6 @@ router.use(authMiddleware);
 
 router.route("/upload/:chatbotId").post(uploadDocument);
 router.route("/fetch/:chatbotId/:documentId").get(getDocumentUrl);
-router.route("/:chatbotId").patch(updateDocument).delete(deleteDocument);
+router.route("/chat/:chatbotId").post(chat);
 
 export default router;

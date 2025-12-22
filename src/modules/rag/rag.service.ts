@@ -43,8 +43,9 @@ export const RagService = {
 
     return data.signedUrl;
   },
-  
-  async generateEmbeddings(filePath: string) {
+
+  async generateEmbeddings(filePath: string, chatbotId: string) {
+    // using the filePath get a url to download the document
     const { data, error } = await supabase.storage
       .from("Mira")
       .createSignedUrl(filePath, 60 * 10);
@@ -71,11 +72,22 @@ export const RagService = {
 
     try {
       fs.writeFileSync(tempPath, pdfBuffer);
-      await RagHelper.indexDocument(tempPath);
+      await RagHelper.indexDocument(tempPath, chatbotId);
     } finally {
       if (tempPath && fs.existsSync(tempPath)) {
         fs.unlinkSync(tempPath);
       }
     }
+  },
+
+  async chat(owner: string, chatbotId: string, message: string) {
+    const chatbot = await ChatbotRepository.findById(owner, chatbotId);
+    if (!chatbot) {
+      throw new ApiError(404, "Chatbot not found");
+    }
+
+    const response = await RagHelper.retrieveDocument(chatbotId, message);
+
+    return response;
   },
 };
