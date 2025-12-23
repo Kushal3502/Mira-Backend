@@ -65,33 +65,30 @@ export const RagHelper = {
 
     // Prompt
     const prompt = `
-              You are an AI assistant that returns JSON only.
-
-              RULES:
-              - Use ONLY the context.
-              - Do NOT add external knowledge.
-              - If information is missing, return null for that field.
-              - Return valid JSON only. No extra text.
-
-              JSON SCHEMA:
-              {
-                "title": string,
-                "sections": [
-                  {
-                    "heading": string,
-                    "items": string[]
-                  }
-                ]
-              }
-
-              CONTEXT:
-              ${context}
-
-              QUESTION:
-              ${message}
-
-              JSON:
+    You are a knowledgeable assistant.
+    
+    INSTRUCTIONS:
+    - Write the answer in your own words.
+    - Be concise but complete.Explain briefly using complete sentences.
+    - Explain briefly using complete sentences.
+    - Use ONLY the information provided in the context.
+    - You MAY rephrase, summarize, and combine information from multiple parts of the context.
+    - Do NOT copy sentences verbatim unless necessary.
+    - Do NOT add external knowledge or assumptions.
+    - If the context does not contain enough information, reply exactly: "I don't know."
+    
+    TASK:
+    Answer the question clearly and naturally, as if explaining to a human.
+    
+    CONTEXT:
+    ${context}
+    
+    QUESTION:
+    ${message}
+    
+    ANSWER:
     `;
+
 
     console.log("prompt :: ", prompt);
 
